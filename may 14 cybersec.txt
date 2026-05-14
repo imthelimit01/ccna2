@@ -1,0 +1,122 @@
+ex.1: you are the Blue Team/SOC guys for pogo sites:
+ebet10.com open only http, https, ping:  80, 443, icmp
+ebet11.com open only dns, https, ssh     53, 443, 22 ==> 6 lines:
+  GOLDEN  FIREWALL FORMULA:  paloalto,fortinet,cisco,checkpoint.
+   protocol         hacker    victim       port
+tcp,udp,icmp,IP     Any      web310/11
+Config t
+NO ip access-list extended FP1
+ip access-list extended FP1
+permit tcp any host bet10.com eq 80
+permit tcp any host bet10.com eq 443
+permit icmp any host bet10.com
+
+permit tcp any host bet11.com eq 53
+permit tcp any host bet11.com eq 443
+permit tcp any host bet11.com eq 22
+end
+config t 
+int gi 3
+ ip access-group FP1-in
+ end
+ 
+ remove the firewall:
+ config t 
+ Int GI 3
+ NO ip access-group FP1 in
+ end
+ 
+ 
+ EX.2
+ bet10.com open only SSH:22, telnet:23
+ bet10.com open only dns:53, https:443 -- FP2
+ 
+ 
+Config t
+NO ip access-list extended FP2
+ip access-list extended FP1
+permit tcp any host bet10.com eq 22
+permit tcp any host bet10.com eq 23
+permit icmp any host bet11.com 
+permit tcp any host bet11.com eq 53
+
+
+ 
+ 
+ 
+ Config t
+NO ip access-list extended FP3
+ip access-list extended FP3
+permit tcp any host bet10.com eq 2000
+permit icmp any host bet10.com 
+permit tcp any host bet11.com eq 5060
+permit tcp any host bet11.com eq 5061
+
+config t 
+int gi 3
+ ip access-group FP3 in
+ end
+
+Config t
+NO ip access-list extended FP4
+ip access-list extended FP4
+permit tcp any host bet10.com eq 443
+permit tcp any host bet11.com eq 22
+
+
+config t 
+int gi 3
+no ip access-group FP4 in
+ end
+
+
+Config t
+NO ip access-list extended FP5
+ip access-list extended FP5
+permit icmp any host bet10.com
+permit tcp any host bet10.com eq 1720
+permit tcp any host bet10.com eq 2000
+permit tcp any host bet10.com eq 5060
+permit icmp any host bet11.com
+permit tcp any host bet11.com eq 22
+permit tcp any host bet11.com eq 80
+permit tcp any host bet11.com eq 443
+
+config t 
+int gi 3
+ip access-group FP5 in
+ end
+
+
+
+	inside:														outside
+												
+bet10.com 192.168.103.10:80									    betlog.com 208.8.8.69:80
+bet10.com 192.168.103.11:443								    betlog.com 208.8.8.69:8443
+bet11.com 192.168.103.10:80									    betlog.com 208.8.8.69:8080
+bet11.com 192.168.103.11:443									betlog.com 208.8.8.69:443
+
+config t
+no access-list 8
+access-list 8 permit host bet10.com
+access-list 8 permit host bet11.com
+Int Gi 3
+ ip nat Inside
+Int gi 1
+ ip nat Outside
+IP Nat inside source static tcp 192.168.103.10 80 208.8.8.69 80
+IP Nat inside source static tcp 192.168.103.10 443 208.8.8.69 8443
+IP Nat inside source static tcp 192.168.103.11 80 208.8.8.69 8080
+IP Nat inside source static tcp 192.168.103.11 443 208.8.8.69 443
+IP nat inside source list 8 int gi 1 Overload
+end
+show ip nat translation
+
+SERVICES:
+
+
+
+
+ 
+ 
+ 
